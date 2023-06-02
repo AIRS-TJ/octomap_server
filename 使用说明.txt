@@ -1,0 +1,14 @@
+功能：pcd转成pgm 
+
+找到octomap_mapping_nodelet.launch 文件，以下代码为加载的pcd的路径
+  <arg name="pcd_map_file" default="$(find octomap_server)/data/GlobalMap.pcd"/>
+
+打开终端运行：
+$ roslaunch octomap_server octomap_mapping_nodelet.launch 
+等待，直到地图出现
+
+打开终端运行：
+$ rosrun map_server map_saver map:=/projected_map
+就可以在当前目录下生成 .pgm和 .yaml文件
+
+http://wiki.ros.org/mallasrikanth/octomap

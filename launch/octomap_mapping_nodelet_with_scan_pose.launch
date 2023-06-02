@@ -1,0 +1,71 @@
+<!-- 
+  Example launch file for octomap_server mapping using nodelets: 
+  Listens to incoming PointCloud2 data and incrementally builds an octomap. 
+  The data is sent out in different representations. 
+
+  Copy this file into your workspace and adjust as needed, see
+  www.ros.org/wiki/octomap_server for details  
+-->
+<launch>
+  
+  <!-- The timestamp of loaded pointcloud is the time when recording, so run in simulation time -->
+  <param name="/use_sim_time" value="false"/>
+
+  <!-- PCD map server -->
+  <arg name="pcd_map_file" default="/home/hw-robot/hwbot_ws/workspace/RSLidarOutsideNoIMU1108/cloudGlobal.pcd"/>
+  
+  <node pkg="pcl_ros" name="pcd_to_pointcloud" type="pcd_to_pointcloud" args="$(arg pcd_map_file) 1.0 _frame_id:=map">
+  </node>
+
+  <arg name="tum_poses_file" default="/home/hw-robot/hwbot_ws/workspace/RSLidarOutsideNoIMU1108/optimized_tum_poses.txt"/>
+  <arg name="lidar_scan_dir" default="/home/hw-robot/hwbot_ws/workspace/RSLidarOutsideNoIMU1108/Scans/"/>
+  <arg name="filter_ground" default="true"/>
+  <arg name="filterInSensorFrame" default="false"/>
+
+  <node name="static_tf" pkg="tf" type="static_transform_publisher" args="0 0 -0.55 0 0 0 rslidar  base_link 100" />
+
+  <node pkg="octomap_server" type="octomap_server_node" name="octomap_server" output="screen">
+  		<!--octmap resolution, same for grid map) -->
+  		<param name="resolution" value="0.05" />
+
+		<param name="latch" value="true" />
+
+		<param name="use_pointcloud_time" value="false" />
+
+  		<!--/ fixed world map frame (set to 'map' if SLAM or localization running!) -->
+  		<param name="frame_id" type="string" value="map" />
+
+        <!--base of the robot for ground plane filtering, set to be the robot center projection frame on groudplane(base_link or base_foorprint_frame)) -->
+		<param name="base_frame_id" type="string" value="base_link" />
+
+  		<!-- maximum range(point to its sensor center) to integrate (speedup!) -->
+  		<param name="sensor_model/max_range" value="50.0" />
+
+  		<!-- whether or not to filter groud plane -->
+		<param name="filter_ground" value="$(arg filter_ground)" />
+
+  		<!-- whether or not to filter pointcloud in sensor frame -->
+		<param name="filterInSensorFrame" value="$(arg filterInSensorFrame)" />
+        
+		<!--z range in world map frame to be converted to grid map -->
+  		<param name="occupancy_min_z" value="-2.0" />
+  		<param name="occupancy_max_z" value="70.0" />
+
+		<!--z range to prefilter input pointcloud. if filter_ground, work in base_link frame, else in world frame -->
+  		<param name="pointcloud_max_z" value="0.1" />
+		<param name="pointcloud_min_z" value="-0.7" />
+
+		<!--distance of points from plane for RANSAC-->
+		<param name="ground_filter/distance" value="0.1" />
+
+		<!--distance of found plane from z=0 to be detected as ground (e.g. to exclude tables)-->
+		<param name="ground_filter/plane_distance" value="0.1" />
+
+		<param name="tum_poses_file" type="string" value="$(arg tum_poses_file)" />
+		<param name="lidar_scan_dir" type="string" value="$(arg lidar_scan_dir)" />
+
+  	</node>
+
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find octomap_server)/cfg/octomap_view.rviz"/> 
+
+</launch>

@@ -1,0 +1,63 @@
+<!-- 
+  Example launch file for octomap_server mapping using nodelets: 
+  Listens to incoming PointCloud2 data and incrementally builds an octomap. 
+  The data is sent out in different representations. 
+
+  Copy this file into your workspace and adjust as needed, see
+  www.ros.org/wiki/octomap_server for details  
+-->
+<launch>
+  <!-- PCD map server -->
+  <!-- <arg name="pcd_map_file" default="$(find octomap_server)/data/dky.pcd"/> -->
+  <arg name="pcd_map_file" default="$(find octomap_server)/data/GlobalMap.pcd"/>
+  <node pkg="pcl_ros" name="pcd_to_pointcloud" type="pcd_to_pointcloud" args="$(arg pcd_map_file) 1.0 _frame_id:=map">
+  </node>
+
+  <!-- test-->
+  <node pkg="nodelet" type="nodelet" name="pcl_manager" args="manager" output="screen" />
+
+  <!-- Run a VoxelGrid filter to clean NaNs and downsample the data -->
+  <!-- <node pkg="nodelet" type="nodelet" name="voxel_grid" args="load pcl/VoxelGrid pcl_manager" output="screen">
+    <remap from="~input" to="/cloud_pcd" />
+    <rosparam>
+      filter_field_name: z
+      filter_limit_min: -0.5
+      filter_limit_max: 0.5
+      filter_limit_negative: False
+      leaf_size: 0.1
+    </rosparam>
+  </node> -->
+  <!-- test-->
+
+  <arg name="filter_ground" default="false"/>
+  <node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
+  	<param name="resolution" value="0.1" />
+		<param name="latch" value="true" />
+		<param name="filter_ground" value="$(arg filter_ground)" />
+		<param name="use_pointcloud_time" value="false" />
+
+    <!-- fixed map frame (set to 'map' if SLAM or localization running!) -->
+    <param name="frame_id" type="string" value="map" />
+
+    <!-- maximum range to integrate (speedup!) -->
+    <param name="sensor_model/max_range" value="250" />
+
+		<param name="occupancy_max_z" value="1.1" />
+		<param name="occupancy_min_z" value="-0.1" />
+
+
+		<param name="pointcloud_max_z" value="1.1" />
+		<param name="pointcloud_min_z" value="-0.1" />
+
+		<param name="track_changes" value="false" />
+		<param name="listen_changes" value="true" />
+
+  		<!-- data source to integrate (PointCloud2) -->
+  	<remap from="cloud_in" to="/cloud_pcd" />
+		<!-- <remap from="cloud_in" to="/voxel_grid/output" /> -->
+
+  	</node>
+
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find octomap_server)/cfg/octomap_view.rviz"/> 
+
+</launch>

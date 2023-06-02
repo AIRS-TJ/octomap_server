@@ -1,0 +1,49 @@
+<!-- 
+  Example launch file for octomap_server mapping using nodelets: 
+  Listens to incoming PointCloud2 data and incrementally builds an octomap. 
+  The data is sent out in different representations. 
+
+  Copy this file into your workspace and adjust as needed, see
+  www.ros.org/wiki/octomap_server for details  
+-->
+<launch>
+
+  <node pkg="octomap_server" type="octomap_server_node" name="octomap_server_online">
+    	<!--octmap resolution, same for grid map) -->
+  		<param name="resolution" value="0.05" />
+
+  		<!--/ fixed world map frame (set to 'map' if SLAM or localization running!) -->
+  		<param name="frame_id" type="string" value="map" />
+
+        <!--base of the robot for ground plane filtering, set to be the robot center projection frame on groudplane(base_link or base_foorprint_frame)) -->
+		<param name="base_frame_id" type="string" value="base_link" />
+
+  		<!-- maximum range(point to its sensor center) to integrate (speedup!) -->
+  		<param name="sensor_model/max_range" value="50.0" />
+
+  		<!-- whether or not to filter groud plane -->
+		<param name="filter_ground" value="true" />
+        
+		<!--z range in world map frame to be converted to grid map -->
+  		<param name="occupancy_min_z" value="0.1" />
+  		<param name="occupancy_max_z" value="3.0" />
+
+		<!--z range to prefilter input pointcloud. if filter_ground, work in base_link frame, else in world frame -->
+  		<param name="pointcloud_max_z" value="0.5" />
+		<param name="pointcloud_min_z" value="-0.1" />
+
+		<!--distance of points from plane for RANSAC-->
+		<param name="ground_filter/distance" value="0.1" />
+
+		<!--distance of found plane from z=0 to be detected as ground (e.g. to exclude tables)-->
+		<param name="ground_filter/plane_distance" value="0.1" />
+
+
+  		<!-- data source to integrate (PointCloud2) -->
+  		<remap from="cloud_in" to="/velodyne_points" />
+
+  	</node>
+
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find octomap_server)/cfg/octomap_view.rviz"/> 
+
+</launch>
