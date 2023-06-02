@@ -29,7 +29,7 @@
   </node> -->
   <!-- test-->
 
-  <arg name="filter_ground" default="false"/>
+  <arg name="filter_ground" default="true"/>
   <node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
   	<param name="resolution" value="0.1" />
 		<param name="latch" value="true" />
@@ -38,6 +38,7 @@
 
     <!-- fixed map frame (set to 'map' if SLAM or localization running!) -->
     <param name="frame_id" type="string" value="map" />
+    <param name="base_frame_id" type="string" value="map" />
 
     <!-- maximum range to integrate (speedup!) -->
     <param name="sensor_model/max_range" value="250" />
@@ -51,6 +52,12 @@
 
 		<param name="track_changes" value="false" />
 		<param name="listen_changes" value="true" />
+
+    <!--distance of points from plane for RANSAC-->
+		<param name="ground_filter/distance" value="0.1" />
+
+		<!--distance of found plane from z=0 to be detected as ground (e.g. to exclude tables)-->
+		<param name="ground_filter/plane_distance" value="0.1" />
 
   		<!-- data source to integrate (PointCloud2) -->
   	<remap from="cloud_in" to="/cloud_pcd" />
